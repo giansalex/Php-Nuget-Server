@@ -7,6 +7,7 @@ if(UrlUtils::RequestMethod()=="put"){
 	require_once(__ROOT__."/upload/index.php");
 	die();
 }
+require_once(__ROOT__."/inc/logincontroller.php");
 ?>
 <html ng-app="phpNugetApp">
 	<head>

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<configuration>
+    <configSections>
+        <section name="managedFusion.rewriter" type="ManagedFusion.Rewriter.Configuration.ManagedFusionRewriterSectionGroup"/>
+    </configSections>
+    <managedFusion.rewriter xmlns="http://managedfusion.com/xsd/managedFusion/rewriter">
+        <!--
+            This is just a minimal sample configuration file that shows how to declare
+            the configuration sections.
+             
+            Because an XML Schema Definition (XSD) is generated for each configuration
+            section, it should be trivial to edit these files because you have
+            IntelliSense on the XML definition.
+        -->
+    </managedFusion.rewriter>  
+
+    <system.web>
+        <customErrors mode="Off"/>
+    </system.web>
+
+	<!-- Integrate the following in to the <system.webServer> tag -->
+    <system.webServer>
+        <validation validateIntegratedModeConfiguration="false"/>
+        <modules runAllManagedModulesForAllRequests="true">
+            <add name="RewriterModule" type="ManagedFusion.Rewriter.RewriterModule, ManagedFusion.Rewriter"/>
+            <remove name="Session"/>
+            <add name="Session" type="System.Web.SessionState.SessionStateModule"/>
+        </modules>
+        <security>
+            <requestFiltering>
+                <fileExtensions>
+                    <add fileExtension=".txt" allowed="false" />
+                </fileExtensions>
+            </requestFiltering>
+        </security>
+        <defaultDocument>
+            <files>
+                <clear />
+                <add value="index.php" />
+                <add value="Default.htm" />
+                <add value="Default.asp" />
+                <add value="index.htm" />
+                <add value="index.html" />
+                <add value="iisstart.htm" />
+                <add value="default.aspx" />
+            </files>
+        </defaultDocument>
+    </system.webServer>
+</configuration>

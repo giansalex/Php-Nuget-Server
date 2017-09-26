@@ -142,5 +142,4 @@ $loginController->UnauthorizedIfNotLoggedIn();
 			</div>
 		</form>
 	</div>
-			<br/><br/><br/><br/><br/><br/>
 </div>

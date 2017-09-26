@@ -10,6 +10,6 @@ $loginController->UnauthorizedIfNotLoggedIn();
 	  <li class="{{getActive(2,'/packages/')}}"><a ng-click="onClickTab(2)"  href="#/profile/{{UserId}}/packages/list/0">Manage Packages</a></li>
 	</ul>
 	<br>
-	<div ui-view class="col-md-10">
+	<div ui-view class="col-md-10" style="margin-bottom:5rem">
 	</div>
 </div>

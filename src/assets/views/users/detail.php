@@ -101,4 +101,5 @@ $loginController->UnauthorizedIfNotLoggedIn();
 		</div>
 		<button ng-click="update(user)" class="btn btn-default">Save</button>
 	</form>
+<br><br><br><br>
 </div>

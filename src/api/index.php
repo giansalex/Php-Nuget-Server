@@ -9,7 +9,7 @@ require_once(__ROOT__."/inc/downloadcount.php");
 
 $id = UrlUtils::GetRequestParamOrDefault("id",null);
 $apiKey = UrlUtils::GetRequestParamOrDefault("apiKey",null);
-
+require_once (__ROOT__."/api/auth.php");
 if($apiKey==null){
 	if(isset($_SERVER["X-NuGet-ApiKey"])){
 		$apiKey = $_SERVER["X-NuGet-ApiKey"];

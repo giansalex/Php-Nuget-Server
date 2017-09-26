@@ -1,6 +1,7 @@
 <?php
 require_once(dirname(__FILE__)."/../../root.php");
 require_once(__ROOT__."/settings.php");
+require_once (__ROOT__."/api/auth.php");
 require_once(__ROOT__."/inc/api_users.php");
 require_once(__ROOT__."/inc/commons/url.php");
 require_once(__ROOT__."/inc/commons/http.php");

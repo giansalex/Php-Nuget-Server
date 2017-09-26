@@ -20,6 +20,11 @@ if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])) {
     if(count($ar) == 1){
         return;
     }
+} else {
+	require_once(__ROOT__."/inc/logincontroller.php");
+	if ($loginController->IsLoggedIn) {
+		return;
+	}
 }
 
 header('WWW-Authenticate: Basic realm="Nuget"');

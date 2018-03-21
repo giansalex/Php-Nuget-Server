@@ -1,4 +1,4 @@
-# PhpNuget V. 4.0.0.0
+# PhpNuget Server
 
 ## Purpose
 

@@ -125,7 +125,7 @@ class NuGetDb
 			$nugetEntity->Author = "";
 		}
 		if($nugetEntity->Title==null){
-			$nugetEntity->Id = "";
+			$nugetEntity->Title = "";
 		}
 		if($nugetEntity->DownloadCount==null){
 			$nugetEntity->DownloadCount = 0;

@@ -98,6 +98,9 @@ class MySqlDb
 				$k = $r[$i];
 				$kt = $t[$i];
 				$val = $list[strtolower($k)];
+				if ($val == null) {
+					$val = $list[$k];
+				}
 				if($kt=="object"){
 					$item->$k = unserialize($val);
 				}else if($kt=="number" && $val!=null){

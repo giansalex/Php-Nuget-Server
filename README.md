@@ -26,38 +26,38 @@ Verified on:
 
 On Red Hat Linux the mod_rewrite must be enabled on the application directory
 since most features depends on it. This can be achieved modifying
-
-	/etc/httpd/conf/http.conf
-	
+```bash
+/etc/httpd/conf/http.conf
+```
 Then on the definition of the phpnuget directory, change the AllowOverride from "None"
 to "All"
 
 From:
-
-<pre class="brush: xml;">
-	<Directory "/var/www/html/phpnugetdir">
-		Options Indexes FollowSymLinks
-		AllowOverride None
-		Order allow,deny
-		Allow from all
-	</Directory>
-</pre>
+```xml
+<Directory "/var/www/html/phpnugetdir">
+	Options Indexes FollowSymLinks
+	AllowOverride None
+	Order allow,deny
+	Allow from all
+</Directory>
+```
 
 To:
 
-<pre class="brush: xml;">
-	<Directory "/var/www/html/phpnugetdir">
-		Options Indexes FollowSymLinks
-		AllowOverride All
-		Order allow,deny
-		Allow from all
-	</Directory>
-</pre>
+```xml
+<Directory "/var/www/html/phpnugetdir">
+	Options Indexes FollowSymLinks
+	AllowOverride All
+	Order allow,deny
+	Allow from all
+</Directory>
+```
 
 And then restart Apache
+```bash
+sudo service httpd restart
+```
 
-	sudo service httpd restart
-	
 This should be enough to let everything works
 
 ### Notes for Apache on Windows
@@ -105,45 +105,45 @@ All of the api lsited that returns a collection support the usage of parameters
 
 ### Api V1
 
-* /api/v1: Retrieves the root for the entities that will be used by the API. No parameters.
-* /api/v1/package/\[package-id\]/\[package-version\]: (GET) Download the specified package. No parameters.
-* /api/v1/package/\[package-id\]/\[package-version\]?apiKey=xxx&setPrerelease: (POST) Set the package as listed.
+* `/api/v1`: Retrieves the root for the entities that will be used by the API. No parameters.
+* `/api/v1/package/\[package-id\]/\[package-version\]`: (GET) Download the specified package. No parameters.
+* `/api/v1/package/\[package-id\]/\[package-version\]?apiKey=xxx&setPrerelease`: (POST) Set the package as listed.
 	* apiKey: Mandatory. The api key of the user. Must match the one of the user that firstly inserted the package or the user must be Admin
 	* setPrerelease: Optional. If present will set the package as release (without touching the listed flag) THIS IS SPECIFIC FOR phpnuget
-* /api/v1/package/\[package-id\]/\[package-version\]?apiKey=xxx&setPrerelease: (DELETE) Set the package as not listed.
+* `/api/v1/package/\[package-id\]/\[package-version\]?apiKey=xxx&setPrerelease`: (DELETE) Set the package as not listed.
 	* apiKey: Mandatory. The api key of the user. Must match the one of the user that firstly inserted the package or the user must be Admin
 	* setPrerelease: Optional. If present will set the package as prerelease (without touching the listed flag) THIS IS SPECIFIC FOR phpnuget
-* /api/v1/$metadata: Retrieves the OData metadata, the actions allowed and the entities specifications. No parameters.
-* /api/v1/FindPackagesById(): Search for packages by id, returns all packages with a certain id ordered by version descending
+* `/api/v1/$metadata`: Retrieves the OData metadata, the actions allowed and the entities specifications. No parameters.
+* `/api/v1/FindPackagesById()`: Search for packages by id, returns all packages with a certain id ordered by version descending
 	* Id: Mandatory parameter, specify the identifier of the package (e.g. Angular-UI-Router)
-* /api/v1/FindPackagesById()/$count: Count all packages with a certain id ordered by version descending. Same parameters as 'FindPackagesById()'
-* /api/v1/Search(): Search for packages satisfyng the query with a certain id ordered by version descending
+* `/api/v1/FindPackagesById()/$count`: Count all packages with a certain id ordered by version descending. Same parameters as 'FindPackagesById()'
+* `/api/v1/Search()`: Search for packages satisfyng the query with a certain id ordered by version descending
 	* $filter: Optional. The query that will be used for the search, see 'Daily usage' for the syntax
 	* $orderby: Optional. List of fields for the order by. e.g. 'Id desc, Version, Author asc' will order by Id descending, then by Version ascending (the default) then by Author ascending.
 	* searchTerm: Optional. Equivalent to write 'substringof(\'searchTerm\',Id) or substringof(\'searchTerm\',Name)'
 	* targetFramework: Optional. Target framework required, the result will contain the matching packages and the ones without framework specified.
 	* includePrerelease: Optional. If set to 'true' include event the prereleases (the ones with the flag set by hand on package editing or the ones with versions that contains alphabetic characters, e.g. 1.0.0.1 is not prerelease but 1.0.beta is)
-* /api/v1/Search()/$count: Count all packages satisfyng the query. Same parameters as 'FindPackagesById()'
-* /api/v1/Packages(): Same as Search()
-* /api/v1/Packages()/$count: Same as Search()/$count
-* /api/v1/Packages: Same as Search()
-* /api/v1/Packages/$count: Same as Search()/$count
-* /api/v1/Packages(Id='\[package-id\]',Version='\[package-id\]'): Retruns the data for the single package
+* `/api/v1/Search()/$count`: Count all packages satisfyng the query. Same parameters as `FindPackagesById()`
+* `/api/v1/Packages()`: Same as Search()
+* `/api/v1/Packages()/$count`: Same as Search()/$count
+* `/api/v1/Packages`: Same as Search()
+* `/api/v1/Packages/$count`: Same as Search()/$count
+* `/api/v1/Packages(Id='\[package-id\]',Version='\[package-id\]')`: Retruns the data for the single package
 
 ### Api V2
 
 All v1 APIs are present, remind to replace the v1 in the previous section with v2!
 
-* /api/v2/FindPackageById(): Same as FindPackagesById()
-* /api/v2/GetUpdates(): Search for packages satisfyng the query with a certain id ordered by version descending
+* `/api/v2/FindPackageById()`: Same as FindPackagesById()
+* `/api/v2/GetUpdates()`: Search for packages satisfyng the query with a certain id ordered by version descending
 	* packageIds: Optional. Pipe (|) separated list of package ids
 	* versions: Optional. Pipe (|) separated list of package versions, their position is matching with the ones in packageIds
 	* targetFrameworks: Optional. Pipe (|) separated list of package target frameworks, their position is matching with the ones in packageIds. If the framework is not specified in the package then it will be returned anyway
 	* includePrerelease: Optional. If set to 'true' include event the prereleases (the ones with the flag set by hand on package editing or the ones with versions that contains alphabetic characters, e.g. 1.0.0.1 is not prerelease but 1.0.beta is)
 	* includeAllVersions: Not supported yet
 	* versionConstraints: Not supported yet
-* /api/v2/GetUpdates()/$count: Count all packages satisfyng the query. Same parameters as 'FindPackagesById()'
-* /api/v2/$batch: Executes the queries/action following the OData batch specifications.
+* `/api/v2/GetUpdates()/$count`: Count all packages satisfyng the query. Same parameters as 'FindPackagesById()'
+* `/api/v2/$batch`: Executes the queries/action following the OData batch specifications.
 
 ### Api V3
 
@@ -165,7 +165,7 @@ This guid is adapted from [iis.net](http://www.iis.net/learn/application-framewo
 
 1. download [php for windows](http://windows.php.net/)
 2. extract downloaded zip ( C:/php )
-3. download [php manager[(http://phpmanager.codeplex.com/releases) for IIS ( its an extension  for managing PHP from IIS control panel )
+3. download [php manager](http://phpmanager.codeplex.com/releases) for IIS ( its an extension  for managing PHP from IIS control panel )
 4. open php manager and click on register new php installation
 5. choose php-cgi.exe and click ok (usually is inside 'C:\Program Files (x86)\PHP\v5.3\php-cgi.exe')
 6. now check phpinfo and choose error reporting

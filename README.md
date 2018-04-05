@@ -76,7 +76,64 @@ These steps are NOT needed if your hosting already configured PHP
 
 * Create the website with a standard web.config
 * Install PHP for IIS (see at the end of this document 'Installation of PHP for IIS')
-* Mark the location of *php-cgi.exe*
+* Mark the location of **php-cgi.exe**
+
+### Install
+
+* Clone this repository.
+* Copy the content of the directory "src" in the location you choose for the server. **DO NOT COPY THE WEB.CONFIG IF IN IIS**
+* Enable write/read/delete access on
+	* db: Directory where all databases and packages are stored
+	* settings.php
+	* Web.Config
+	* .htaccess
+* Verify to have write permissions on the "db" directory.
+* Open the setup page at http://myhost/mynuget/setup.php and follow the wizard. The value will be prefilled
+	* Admin UserId: the user that will be created (or updated) as admin
+	* Admin Password: the password (on update will be overwritten)
+	* Admin Email: ...
+	* Password Regex: The regex that will be used to verify the password (default min 8 chars, max 40)
+	* Password Description: The error to show when the password is not matching the regex
+	* Application path: If the website is "http://host/nuget" will be "nuget". If the website is "http://host" will be empty.
+	* Data Root: The directory in which the txt db will be placed. It's usually a subdir of the website but can be changed. 
+	* Packages Root: The directory in which the uploaded packages will be placed. It's usually a subdir of the website but can be changed. 
+	* php-cgi.exe: To allow the configuration of php under IIS.
+	* Allow package update via Upload: Default disabled, if enabled it is possible to overwrite the packages BUT THIS IS NOT A STANDARD BEHAVIOUR.
+	* Allow package delete: Default disabled. LEAVING IT ENABLED IS NOT A STANDARD BEHAVIOUR
+* When using the mysql installation
+	* Check the "Use mysql" and fill the configuration data
+	* NOTE: Import from txt db does not yet work!!!
+* If under IIS set the path of 'php-cgi.exe' (leave blank if your hosting already configured PHP)
+* Change the password, email and login of the administration without worries.
+* Rename the setup.php to setup.bak
+* Remove write access on 
+	* settings.php
+	* Web.Config
+	* .htaccess
+* Now open http://myhost/mynuget and see the gallery
+* Happy Nugetting!
+
+## Daily usage
+
+* Configure your Visual Studio or Chocolatey to use http://myhost/mynuget/api/v2/ as repository
+* To upload packages through command line:
+
+```bash
+nuget push mypackage.nupkg myApiKey http://myhost/mynuget/upload
+```
+
+* To search items the syntax follow the OData specification (more or less). Some example
+	* Id eq \'NUnit\': Search for all packages with id equals to NUnit
+	* substringof(\'Microsoft\',Author): Search for all packages with Microsoft between the authors
+	* Version gt \'1.0.1.0.beta\': Search for all packages with version greater than 1.0.1.0.beta
+* All search blocks can be grouped with parenthesis and with 'and' and 'or' keywords.
+* The keywords are
+	* gt/gte: Greater/Greater equal
+	* lt/lte: Lower/Lower equal
+	* eq/neq: Equal/Not Equals
+	* substringof: Check if the first parameter is contained in the second parameter
+
+## Administration
 
 ### Simple user
 

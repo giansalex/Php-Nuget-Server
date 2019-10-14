@@ -82,6 +82,8 @@ These steps are NOT needed if your hosting already configured PHP
 
 * Clone this repository.
 * Copy the content of the directory "src" in the location you choose for the server. **DO NOT COPY THE WEB.CONFIG IF IN IIS**
+* Install [Composer](https://getcomposer.org/)
+* Run `composer install`
 * Enable write/read/delete access on
 	* db: Directory where all databases and packages are stored
 	* settings.php

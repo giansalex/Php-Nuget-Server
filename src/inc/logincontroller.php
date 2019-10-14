@@ -2,8 +2,8 @@
 require_once(dirname(__FILE__)."/../root.php");
 require_once(__ROOT__."/settings.php");
 require_once(__ROOT__."/inc/commons/url.php");
-require_once(__ROOT__."/inc/commons/url.php");
 require_once(__ROOT__."/inc/db_users.php");
+require_once(__ROOT__."/inc/compatibility.php");
 
 $loginController = new LoginController();
 
@@ -25,6 +25,7 @@ class LoginController
 			$this->UserId = $_SESSION["UserId"];
 			$this->Admin = $_SESSION["Admin"];
 			$this->Packages = $_SESSION["Packages"];
+			$this->Email = $_SESSION["Email"];
 		}else if("true"==$doLogin){
 			$this->_login();
 			$location = UrlUtils::CurrentUrl(Settings::$SiteRoot);
@@ -38,10 +39,22 @@ class LoginController
 		$this->_initialize();
 	}
 	
-	function RedirectIfNotLoggedIn()
+	function RedirectIfNotLoggedIn($errorCode = 0)
 	{
 		if($this->IsLoggedIn) return;
-		$location = UrlUtils::CurrentUrl(Settings::$SiteRoot."?specialType=logon");
+		$result = "";
+		switch($errorCode){
+			case -1:
+				$result = base64_encode("Invalid credentials");//"User does not exist.");
+				break;
+			case -2:
+				$result = base64_encode("Invalid credentials");//"Incorrect password.");
+				break;
+			case -3:
+				$result = base64_encode("Invalid credentials");//"This user is currently disabled.");
+				break;
+		}
+		$location = UrlUtils::CurrentUrl(Settings::$SiteRoot."?specialType=logon&result=$result");
 		header("Location: ".$location);
 		die();
 	}
@@ -58,6 +71,7 @@ class LoginController
 	public $UserId;
 	public $Admin;
 	public $Packages;
+	public $Email;
 
 	function _login()
 	{
@@ -75,26 +89,37 @@ class LoginController
 		$udb = new UserDb();
 		$user = null;
 
-		$ar = $udb->Query("(Enabled eq true) and (UserId eq '".$uid."' or Email eq '".$uid."') and (Md5Password eq '".$pwd."'");		
+		$ar = $udb->Query("(UserId eq '".$uid."' or Email eq '".$uid."')");
+		$errorCode = 0;
 			
 		if(sizeof($ar)==1){
 			$user = $ar[0];
+			if($user->Md5Password != $pwd) {
+				$errorCode = -2;
+			} else if($user->Enabled != true) {
+				$errorCode = -3;
+			}
+		} else {
+			$errorCode = -1;
 		}
 		
 		
 		//echo "Loggedin ".$doLogin;
-		if($user == null){
+		if($errorCode != 0){
 			session_unset();
-			session_destroy(); 
+			session_destroy();
+			$this->RedirectIfNotLoggedIn($errorCode);
 			return;
 		}
 		$this->IsLoggedIn = true;
 		$this->UserId = $user->UserId;
 		$this->Admin = $user->Admin;
-		$this->Packages = $user->Packages;		
+		$this->Packages = $user->Packages;
+		$this->Email = $user->Email;
 		$_SESSION["UserId"] = $this->UserId;
 		$_SESSION["Admin"] = $this->Admin;
 		$_SESSION["Packages"] = $this->Packages;
+		$_SESSION["Email"] = $this->Email;
 	}
 }
 

@@ -4,8 +4,8 @@ require_once(__ROOT__."/settings.php");
 
 class UserEntity
 {
-	var $Id;
-    var $Admin="false";
+    var $Id;
+    var $Admin = "false";
     var $UserId;
     var $Name;
     var $Company;
@@ -13,6 +13,7 @@ class UserEntity
     var $Packages;
     var $Enabled;
     var $Email;
+    var $GravatarUrl;
     var $Token;
 }
 ?>

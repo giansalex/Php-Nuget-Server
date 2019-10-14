@@ -25,6 +25,15 @@ class SingleResult
 }
 
 function getSslPage($url) {
+
+    if ( defined('__HTTPPROXY__') && (__HTTPPROXY__ !== '')) {
+      $proxy = __HTTPPROXY__;
+    } elseif (getenv('http_proxy')) {
+      $proxy = getenv('http_proxy');
+    } else {
+      $proxy = null;
+    }
+    
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
     curl_setopt($ch, CURLOPT_HEADER, false);
@@ -32,6 +41,7 @@ function getSslPage($url) {
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_REFERER, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($ch, CURLOPT_PROXY, $proxy);
     $result = curl_exec($ch);
     curl_close($ch);
     return $result;
@@ -61,9 +71,9 @@ class PackagesApi extends SmallTextDbApiBase
 		
 		
 		if(!$loginController->Admin){
-			if($user->Id!=$old->UserId){
+			//if($user->Id!=$old->UserId){
 				throw new Exception("Operation not allowed with current rights!");
-			}
+			//}
 		}
 	}	
 	
@@ -178,7 +188,8 @@ class PackagesApi extends SmallTextDbApiBase
 			$this->_preExecute();
 			$url = UrlUtils::GetRequestParam("Url");
 			$id = UrlUtils::GetRequestParam("Id");
-			$version = UrlUtils::GetRequestParam("Version");
+            $version = UrlUtils::GetRequestParam("Version");
+            $isSymbol =UrlUtils::GetRequestParam("symbol")!=null;
 			
 			if($id==null || $url==null || $version==null){
 				throw new Exception("Missing data");
@@ -201,9 +212,12 @@ class PackagesApi extends SmallTextDbApiBase
 			$nugetReader = new NugetManager();
 			
 			$parsedNuspec = $nugetReader->LoadNuspecFromFile($tempFile);
+			if(!$isSymbol){
+			    $isSymbol=$parsedNuspec->IsSymbols;
+            }
 			
 			$parsedNuspec->UserId=$user->Id;
-			$nuspecData = $nugetReader->SaveNuspec($tempFile,$parsedNuspec);
+			$nugetReader->SaveNuspec($tempFile,$parsedNuspec,$isSymbol);
 		}catch(Exception $ex){
 			if(file_exists($tempFile))
 			unlink($tempFile);
@@ -215,6 +229,7 @@ class PackagesApi extends SmallTextDbApiBase
 	
 	public function docountpackagestorefresh()
 	{
+        $result =0;
 		try{
 			$this->_preExecute();
 			global $loginController;
@@ -227,7 +242,7 @@ class PackagesApi extends SmallTextDbApiBase
 			$message = $result ;
 			ApiBase::ReturnSuccess($message);
 		}catch(Exception $ex){
-			$message = "Refreshed ".$i." packages over ".sizeof($results).".";
+			$message = "Refreshed only ".$result." files.";
 			ApiBase::ReturnError($message."\r\n".$ex->getMessage(),500);
 		}
 	}
@@ -288,8 +303,7 @@ class PackagesApi extends SmallTextDbApiBase
 			$parsedNuspec = $nugetReader->LoadNuspecFromFile($file);
 			$r->Id= $parsedNuspec->Id;
 			$r->Version= $parsedNuspec->Version;
-			
-			$pathInfo = basename($file);
+
 			$realPath = Path::Combine(Settings::$PackagesRoot,$r->Id.".".$r->Version.".nupkg");
 			if($realPath!=$file){
 				if(file_exists($realPath) && DIRECTORY_SEPARATOR == '/'){
@@ -300,7 +314,7 @@ class PackagesApi extends SmallTextDbApiBase
 			}
 			
 			$parsedNuspec->UserId=$userId;
-			$nuspecData = $nugetReader->SaveNuspec($file,$parsedNuspec);
+			$nugetReader->SaveNuspec($file,$parsedNuspec);
 		}catch(Exception $ex){
 			$r->Success = false;
 			$r->Reason = $ex->getMessage();

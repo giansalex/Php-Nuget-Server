@@ -101,16 +101,18 @@ class ObjectSearch
 	
 	function _isMatching($object)
 	{
+		return true;
 	}
 	
 	function _reorder($array)
 	{
+		return $array;
 	}
 	
 	function Filter($objectArray)
 	{
 		$result = array();
-		for($i;$i< sizeof($objectArray);$i++){
+		for($i=0;$i< sizeof($objectArray);$i++){
 			if($this->_isMatching($objectArray[$i])){
 				$result[] = $objectArray[$i];
 			}
@@ -156,9 +158,16 @@ class ObjectSearch
 	}
 	function _isString($operator)
 	{
-		if($operator[0]==$operator[sizeof($operator)-1]){
-			return $this->_isStartString($operator[0]);
+		if(is_array($operator)){
+			if($operator[0]==$operator[sizeof($operator)-1]){
+				return $this->_isStartString($operator[0]);
+			}
+		}else if(is_string($operator)){
+			if($operator[0]==$operator[strlen($operator)-1]){
+				return $this->_isStartString($operator[0]);
+			}
 		}
+		
 		return false;
 	}
 	function _isNumeric($operator)
@@ -223,6 +232,10 @@ class ObjectSearch
 			if($this->_isField($s)){
 				$o = new Operator();
 				$o->Type = "field";
+                //Fix for Chocolatey dirty search
+				if(strcmp($s,"id")==0){
+					$s="Id";
+				}
 				$o->Value = $s;
 				$temp[] = $o;
 			}else if($this->_isString($s)){
@@ -346,7 +359,7 @@ class ObjectSearch
 				
 			$v = strtolower($o->Value);
 			$t = strtolower($o->Type);
-			if($v==$operator){
+			if($v==$operator && $t!="string" ){
 				//Seek last logical operator
 				$popped = array_pop($andResult);
 				$lastEnd = $i;
@@ -383,16 +396,17 @@ class ObjectSearch
 		return $andResult;
 	}
 	
-	function _reorderLogicalOperators($identified)
+	function _reorderLogicalOperators($identified,$parent=null)
 	{
 		$result = array();
 		for($i=0;$i<sizeof($identified);$i++){
 			$o = $identified[$i];
 			$t = strtolower($o->Type);
+			$v = $o->Value;
 			if($t=="function"){
-				$o->Children = $this->_reorderLogicalOperators($o->Children);
+				$o->Children = $this->_reorderLogicalOperators($o->Children,$o);
 			}else if($t=="group"){
-				$temp = $this->_reorderLogicalOperators($o->Children);		
+				$temp = $this->_reorderLogicalOperators($o->Children,$o);
 
 				if(sizeof($temp)==1){
 					$o = $temp[0];
@@ -412,7 +426,9 @@ class ObjectSearch
 		
 		$identified = $this->_subRenderLogicalOperators($identified,"and",-1);
 		$identified = $this->_subRenderLogicalOperators($identified,"or",-1);
-		
+
+
+
 		return $identified;
 	}
 	
@@ -450,7 +466,7 @@ class ObjectSearch
 		
 		@$this->_storeOrderByClause($notOperatorIdentified);
 		$this->parseResult = @$this->_reorderLogicalOperators($operatorIdentified);
-		
+		//zzzvar_dump($this->parseResult);die();
 		return $this->parseResult;
 	}
 	
@@ -501,13 +517,12 @@ class ObjectSearch
 
 			$fo = new Operator();
 			$fo->Type = "fieldinstance";
-			$fo->Value = $subject->$v;
 			$fo->Id = $v;
 			return "`".$v."`";
 		}else if($this->externalTypes!=null && $this->externalTypes->IsExternal($v)){
 			return $parseTreeItem;
 		}else{
-			throw new ParserException("Token '".$t."' not supported excuting");
+			throw new ParserException("Token '".$t."' not supported excuting (1)");
 		}
 		return $result;
 	}
@@ -579,7 +594,7 @@ class ObjectSearch
 			for($i=0;$i<sizeof($c);$i++){
 				$params[] = $this->_doExecute($c[$i],$subject);
 			}
-			
+
 			$result = $this->_executeFunction($v,$params);
 		}else if($t == "group"){
 			$params = array();
@@ -597,7 +612,7 @@ class ObjectSearch
 		}else if($this->externalTypes!=null && $this->externalTypes->IsExternal($v)){
 			return $parseTreeItem;
 		}else{
-			throw new ParserException("Token '".$t."' not supported excuting");
+			throw new ParserException("Token '".$t."' not supported excuting (2)");
 		}
 		return $result;
 	}
@@ -681,11 +696,16 @@ class ObjectSearch
 			return BuildBool(true);
 		} 
 	}
-	
+
 	function doeq($args)
 	{
 		$l=$args[0];
 		$r=$args[1];
+
+		if($l->Type=="string" || $r->Type=="string"){
+			return BuildBool(strtolower($l->Value)==strtolower($r->Value));
+		}
+
 		return BuildBool($l->Value == $r->Value);
 	}
 	

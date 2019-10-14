@@ -63,11 +63,12 @@ class NugetManager
         
         
         $destination = Path::Combine(Settings::$PackagesRoot,"/".strtolower($e->Id).".".strtolower($e->Version).".nupkg");
-        
-        if(file_exists($destination)) unlink($destination);
-        
+        $symbols = Path::Combine(Settings::$PackagesRoot,"/".strtolower($e->Id).".".strtolower($e->Version).".snupkg");
+
         $nugetDb->DeleteRow($e);
-        
+
+        if(file_exists($destination)) unlink($destination);
+        if(file_exists($symbols)) unlink($symbols);
     }
     
     public function SpecialChars($hasMap)
@@ -91,29 +92,31 @@ class NugetManager
 	    $this->SpecialChars($m);
 		$e->Version = $m["version"];
         $e->Id = $m["id"];
+        $e->Title = "";
         if(array_key_exists("title",$m))$e->Title = $m["title"];
-        if(sizeof($e->Title)==0 || $e->Title==""){
+        if($e->Title==null|| !is_string($e->Title)  ||  strlen($e->Title)==0){
             $e->Title = $e->Id;   
         }
-		if(sizeof($e->Id)==0 || $e->Id==""){
-            $e->Id = $e->Title;   
-        }
+
 		$e->IsPreRelease = PhpNugetObjectSearch::IsPreRelease($e->Version);
 		$e->Listed = true;
+        $e->RequireLicenseAcceptance =false;
+        $e->Description="";
+        $e->Copyright="";
         if(array_key_exists("licenseurl",$m))$e->LicenseUrl = $m["licenseurl"];
 		if(array_key_exists("releasenotes",$m))$e->ReleaseNotes = $m["releasenotes"];
 		if(array_key_exists("iconurl",$m))$e->IconUrl = $m["iconurl"];
 		else $e->IconUrl = UrlUtils::CurrentUrl(Settings::$SiteRoot."content/packagedefaulticon-50x50.png");
         if(array_key_exists("projecturl",$m))$e->ProjectUrl = $m["projecturl"];
-        $e->RequireLicenseAcceptance = $m["requirelicenseacceptance"];
-        $e->Description = $m["description"];
+        if(array_key_exists("requirelicenseacceptance",$m))$e->RequireLicenseAcceptance = $m["requirelicenseacceptance"];
+        if(array_key_exists("description",$m))$e->Description = $m["description"];
 		if(array_key_exists("tags",$m))$e->Tags = $m["tags"];
         if(array_key_exists("author",$m))$e->Author = $m["author"];
 		if(array_key_exists("authors",$m))$e->Author = $m["authors"];
 		if(array_key_exists("summary",$m))$e->Summary = $m["summary"];
         $e->Published = Utils::FormatToIso8601Date();
         if(array_key_exists("copyright",$m))$e->Copyright = $m["copyright"];
-		else $e->Copyright = $m["owners"];
+		else if(array_key_exists("owners",$m))$e->Copyright = $m["owners"];
         if(array_key_exists("owners",$m))$e->Owners = $m["owners"];
 	}
     
@@ -143,17 +146,18 @@ class NugetManager
         }
         uplogv("nugetreader.nuget","ZIPCONT",$files);
         $nuspecContent = $zipmanager->LoadFile($nupckgName);
-        
+
 		//uplogv("nugetreader","Nuspec content!",$nuspecContent);
         $xml = XML2Array($nuspecContent);
         $e = new PackageDescriptor();
         $m=$xml["metadata"];
-        
+
         $this->LoadXml($e,$m,$xml);
         /*for($i=0;$i<sizeof($ark);$i++){
             $m[strtolower ($ark[$i])]=$mt[$ark[$i]];
         }*/
         $e->TargetFramework = "";
+        $e->IsSymbols = stripos($nuspecContent,'SymbolsPackage')!==false;
         
         uplogv("nugetreader.nuget","fwks",$frameworks);
         foreach($frameworks as $key=>$val){
@@ -183,8 +187,12 @@ class NugetManager
 		return $e;
 	}
 	
-    public function SaveNuspec($nupkgFile,$e)
+    public function SaveNuspec($nupkgFile,$e,$isSymbol=false)
     {
+
+        if($e->IsSymbols){
+            $isSymbol=true;
+        }
 		global $loginController;
 		$nugetDb = new NuGetDb();
 		$query = "Id eq '".$e->Id."' orderby Version desc";
@@ -198,8 +206,17 @@ class NugetManager
 			$e->UserId = $res[0]->UserId;
 		}
 		$e->IsPreRelease = indexOf($e->Version,"-")>0;
-		if($nugetDb->AddRow($e,__ALLOWPACKAGEUPDATE__)){
-			$destination =Path::Combine(Settings::$PackagesRoot,($e->Id).".".($e->Version).".nupkg");
+
+        $destination =Path::Combine(Settings::$PackagesRoot,($e->Id).".".($e->Version).".nupkg");
+
+        if($isSymbol){
+            $destination =Path::Combine(Settings::$PackagesRoot,($e->Id).".".($e->Version).".snupkg");
+
+            $destination = str_ireplace(".symbols.",".",$destination);
+        }
+
+		if($isSymbol || $nugetDb->AddRow($e,__ALLOWPACKAGEUPDATE__)){
+
 			if(strtolower($nupkgFile)!=strtolower($destination)){
 				if(file_exists($destination)){
 					unlink($destination);

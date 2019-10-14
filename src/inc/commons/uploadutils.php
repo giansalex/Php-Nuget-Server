@@ -7,6 +7,8 @@ class UploadUtils
 {
     var $destinationDir;
 	var $allowAll;
+	var $maxSize;
+	var $allowedExts;
     
     public function __construct($destinationDir,$allowedExts,$maxSize,$allowAll=false) 
     {
@@ -44,13 +46,13 @@ class UploadUtils
 			$toret["hasError"] = false; 
 			$toret["errorCode"] = null; 
 			$toret["errorMessage"] = ""; 
-			$toret["name"]=$file["name"]; 
+			$toret["name"]=$file["name"];
+            $toret["sizeBytes"]=0;
 			if(array_key_exists("mime",$file))$toret["mime"] = $file["type"]; 
 			if(array_key_exists("tmp_name",$file))$toret["tmpName"] = $file["tmp_name"]; 
 			if(array_key_exists("size",$file))$toret["sizeBytes"] = $file["size"]; 
 			$exploded  = explode(".", $toret["name"]);
 			$extension = end($exploded);
-			
 			
 			if ( $toret["sizeBytes"] >= $this->maxSize){
 				$toret["hasError"] = true;
